@@ -105,13 +105,260 @@
 
 #### 二、远程仓库：
 
-1. 创建SSH kye：
+1. ##### 创建SSH kye：
 
    ```
-   $ ssh-keygen -t rsa -C "youremail@example.com"
+   $ ssh-keygen -t rsa -C "youremail@example.com"   // 注意：ssh-keygen 是连体的
    ```
 
-   补充：将生成的.pub文件的内容复制粘贴到 “github——>设置——>SSH——>new SSH key——xxx"
+   【补充】：将生成的.pub文件(默认在c:/user/Aministrator/.ssh/)的内容复制粘贴到 “github——>设置——>SSH——>new SSH key——xxx"
 
-2. 
+   【特别注意】：新手在生成SSH 的时候不要去设置文件名和密码，否则会连接不了远程，需要多配置很多的信息。
+
+2. ##### 本地连接到远程
+
+   ```
+   $ git remote add origin git@github.com:michaelliao/learngit.git
+   ```
+
+3. ##### 把本地所有内容推送到远程：
+
+   - 推送push：与 add、commit组合成三步曲。
+
+
+   ```
+$ git push -u origin master
+   ```
+
+   参数：-u，第一次推送时才需要加，目的是将本地的master分支与远程master关联起来。
+
+   补充：origin是远程库的名字，也可以取任意名称。
+
+4. ##### 删除远程库：意外连接错地址时可用
+
+   - 删除：git remove rm + <name>
+
+   - 删除的意思：解除本地 与远程 的绑定关系。
+
+
+   ```
+$ git remove -v  // 建议删除远程库前先操作这一步
+-> origin git@github.com:Aoo---.git (fetch)    // 输出的内容
+-> origin git@github.com:Aoo---.git (push)     // 输出的内容
+$ git remove rm origin
+   ```
+
+5. ##### 从远程克隆：建议开发时，先建立远程库！
+
+   - 新建repo：勾选Initialize ...，可生成README.md文件；
+
+   - 克隆clone：记得先切换目录
+
+     ```
+     $ git clone git@github.com:Aoo---.git // ssh协议
+     $ git clone https://github.com/Aoo---.git // https协议
+     ```
+
+### 三、分支管理：
+
+1. ##### 创建分支：git checkout -b + <name>
+
+   ```
+   $ git checkout -b dev  // 创建一个dev的分支
+   
+   // 有了参数-b，等价于下面两条命令
+   $ git branch dev       // 创建不切换到dev
+   $ git checkout dev     // 切换到dev分支
+   ```
+
+   参数：-b 表示创建并切换。可以对比工作区撤销也是用的checkout。
+
+2. ##### 查看：
+
+   - 查看当前所有分支：git branch
+
+     ```
+     $ git branch  // 列出所有分支，有星号*标记的，指代当前分支
+     -> * dev
+     -> main
+     ```
+
+   - 对文本【修改】 + 【添加+提交+切换】
+
+     ```
+     在README.md中添加内容进行修改："xxxxxxxxx"
+     $ git add README.md                    // add——>添加到暂存区
+     $ git commit -m "adding branch dev"    // commit——>提交到分支
+     
+     $ git checkout master  // 分支操作结束后，切换回主线    
+     ```
+
+3. ##### 合并分支：git merge + <name>
+
+   ```
+   $ git checkout master  // 合并前，确保先切回主分支
+   $ git merge dev        // 将主分支与dev分支合并  
+   ```
+
+4. ##### 删除分支：git branch -d + <name>
+
+   ```
+   $ git branch -d dev    // 删除分支dev
+   $ git branch           // 查看所有分支，则只剩下master
+   ```
+
+5. ##### 切换分支：为了避免混淆，新的切换命令用：git switch + <name>
+
+   ```
+   $ git switch -c dev        <===> git checkout -b dev
+   $ git switch master        <===> git checkout master
+   ```
+
+6. ##### 合并冲突的处理：
+
+   - 当主线和分支都对同一个文件修改时，合并会出错，需要重新打开文件，删除github自动添加的一堆符号：<<<<<< ==== >>>>>>>，这是区分不同分支的标记。
+
+   ```
+   //当前为master，合并分支featurel
+   $ git merge feature1  // 出现冲突
+   
+   // 对文本修改后，重新添加和提交
+   $ git add README.md
+   $ git commit -m "fixed"
+   
+   // 删除分支
+   $ git branch -d featurel
+   ```
+
+7. ##### 分支管理策略：
+
+   - --no-ff：禁用Fast forward模式。可以在merge时，生成一个commit。默认是Fast forward模式，缺点是看不出曾经做过合并。
+   - ![image-20221213202444550](C:\Users\Administrator\AppData\Roaming\Typora\typora-user-images\image-20221213202444550.png)
+   - master：该分支应该非常稳定，只用来发布正式的新版本；
+   - dev：每个人都从该分支clone到本地干活，完成任务再合并；
+
+8. Bug分支：
+
+   - 储存当前的工作现场：git stash
+
+   - ```
+     $ git stash     // 比如当前在dev，为了先修改bug，只能把当前工作现场先保存起来。
+     ```
+
+   - 创建临时分支：比如在master分支上修复bug
+
+     ```
+     $ git switch master            // 切换到主分支
+     $ git checkout -b issue-101    // 新建bug的分支
+     
+     $ git add README.md              // 修改完bug文件后，添加  
+     $ git commit -m "fix issue-101"  // 提交
+     
+     $ git swich master               // bug处理完后，切回主分支
+     $ git merge --no-ff -m "merge bug fix 101" issue-101   // 合并临时的bug分支
+     
+     $ git switch dev     // 切回原来保存的现场
+     $ git status         // 查看当前状态
+     $ git stash list     // 查看工作现场在哪里
+     
+     // 恢复并删除stash内容
+     $ git stash apply    //恢复
+     $ git stash drop     //删除   
+     $ git stash pop      //恢复+删除 等价于上面两条命令
+     
+     // 恢复指定的stash
+     $ git stash apply stash@{0}
+     
+     // 若dev也有和master一样的bug需要修复，只需要check-pick + id 
+     git check-pick 211a5c 
+     ```
+
+     总结：保存工作现场git stash，修复bug，回到工作现场git check-pick。
+
+9. feature分支：功能分支
+
+   ```
+   git swith -c feature-vulcan   // 新建一个功能分支
+   ... 开发完一个vulcan.py
+   git add vulcan.py
+   git commit -m "add feature vulcan"
+   
+   git switch dev               // 切换到开发分支，准备合并，然而没执行合并，而是要取消
+   git branch -d feature-vulcan // 错误！！！
+   git branch -D feature-vulcan // 正确！！！未合并就要强制执行删除操作，需要用大D
+   ```
+
+   总结：丢弃未合并的功能 git  branch -D + <branch name>
+
+10. 多人协作：
+
+    ```
+    // 查看远程库信息
+    git remote       // 粗略
+    git remote -v    // 详细
+    
+    // 推送分支：本地提交到远程，需要写明提交哪个分支
+    // 通常只需要推送master和dev分支，bug和feature一般不需要推送
+    git push origin master
+    git push origin dev 
+    
+    // 抓取分支：
+    $ git clone git@github.com:Aoo...git   
+    $ git branch 
+    -> *master         					// 只能看到主分支
+    $ git checkout -b dev origin/dev      // 必须自己再创建远程的dev到本地
+    
+    // 当推送出现冲突时，先git pull，再本地合并merge，再解决冲突，再推送git push
+    // 同时，拉取需要先指定本地与远程的链接,通常失败会提示no tracking information
+    $ git branch --set-upstream-to=origin/dev dev       // 没有这一步，则拉取会失败
+    $ git pull                                          // 从远程抓取分支回本地
+    
+    $ git commit -m "fix env conflict"   // 修复冲突
+    $ git push origin dev
+    ```
+
+    总结：推送 git push origin + <branch name>
+
+11. Rebase：重设基点
+
+    ```
+    git rebase         // 效果是将本地未push的分支提交历史整理成一条直线
+    ```
+
+### 四、标签管理：
+
+1. 创建标签：
+
+   ```
+   $ git tag v1.0                  					// 创建普通标签
+   $ git tag -a v1.0 -m "version 1.0 released" 142s5a    // 创建带有说明的标签
+   
+   $ git log --pretty=oneline --abbrev-commit // 找id
+   $ git tag v0.9 5482s5a       			  // 忘记打标签，可以找出id，再重新打上
+   ```
+
+2. 查看所有标签
+
+   ```
+   $ git tag   
+   ```
+
+3. 标签信息：git show + <tag-name>
+
+   ```
+   $ git show v1.0 
+   ```
+
+4. 操作标签：
+
+   - 删除标签：
+
+     ```
+     $ git tag -d v1.0    // 删除本地标签
+     
+     $ git tag -d v1.0
+     $ git push origin :refs/tags/v1.0    // 这两步一起才能从远程库里删除标签
+     ```
+
+   - 推送标签到远程
 
