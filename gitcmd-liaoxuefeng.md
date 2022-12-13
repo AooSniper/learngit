@@ -361,4 +361,6 @@ $ git remove rm origin
      ```
 
    - 推送标签到远程
+   $ git push origin v1.0     // 推送指定标签
+   $ git push origin --tags   // 推送全部标签
 
